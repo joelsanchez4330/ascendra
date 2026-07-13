@@ -1,54 +1,36 @@
+"use client";
+
 import React from 'react';
+
+interface DBPriceTier {
+  name: string;
+  price: string;
+  period: string;
+  description: string;
+  features: string[];
+}
 
 interface DetailPricingProps {
   serviceTitle: string;
+  pricingTiersData: string; // Accepts the stringified JSON column right from your services table
 }
 
-export default function DetailPricing({ serviceTitle }: DetailPricingProps) {
-  const tiers = [
-    {
-      name: "Startup Tier",
-      price: "IDR 15M",
-      period: "per single session",
-      description: "Ideal for growing teams seeking an immediate cultural foundation and basic stress-management routines.",
-      features: [
-        "Up to 15 team participants",
-        "1 full-day immersive workshop session",
-        "Essential framework workbook PDF access",
-        "1-week post-training follow-up support",
-        "Standard organizational wellness assessment"
-      ]
-    },
-    {
-      name: "Business Tier",
-      price: "IDR 35M",
-      period: "per 3-month cycle",
-      description: "Perfect for established mid-sized organizations wanting deeper manager training and long-term retention tools.",
-      features: [
-        "Up to 45 total team participants",
-        "3 monthly comprehensive training modules",
-        "Printed guidebooks and full manager toolkits",
-        "Bi-weekly pulse surveys and implementation data",
-        "Private Slack channel support for core leadership",
-        "1 baseline leadership alignment consultation"
-      ],
-      popular: true
-    },
-    {
-      name: "Corporate Tier",
-      price: "Custom",
-      period: "annual commitment",
-      description: "Built for enterprises requiring fully tailored structural strategies, ongoing custom coaching networks, and scaling metrics.",
-      features: [
-        "Unlimited participant scaling",
-        "Year-round custom training schedule architecture",
-        "Tailored materials, worksheets, and brand matching",
-        "Dedicated implementation specialist assigned to HR",
-        "Quarterly diagnostic executive impact reviews",
-        "Integrated access to direct 1-on-1 employee coaching pools"
-      ]
+export default function DetailPricing({ serviceTitle, pricingTiersData }: DetailPricingProps) {
+  // Safe fallbacks matching database structure seeds in case data fails to parse
+  let tiers: DBPriceTier[] = [];
+
+  try {
+    if (pricingTiersData) {
+      tiers = JSON.parse(pricingTiersData);
     }
-  ];
+  } catch (error) {
+    console.error("Failed to parse dynamic database pricing tiers:", error);
+    tiers = [];
+  }
+
+  if (!tiers || tiers.length === 0) {
+    return null; // Return empty space cleanly if no tiers are mapped
+  }
 
   return (
     <section className="bg-gray-50 py-16 border-b border-gray-200/60">
@@ -64,18 +46,20 @@ export default function DetailPricing({ serviceTitle }: DetailPricingProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {tiers.map((tier, idx) => {
+            // Dynamically assign popularity styling framework flag to the middle item array element (Business tier index 1)
+            const isPopular = idx === 1;
             const message = encodeURIComponent(`Hello Ascendra, I am interested in the ${tier.name} package for the ${serviceTitle} program.`);
             
             return (
               <div
                 key={idx}
                 className={`bg-white rounded-3xl p-8 border flex flex-col justify-between transition-all duration-300 relative ${
-                  tier.popular
+                  isPopular
                     ? 'border-[#0D7C66] shadow-xl md:-translate-y-2 ring-1 ring-[#0D7C66]'
                     : 'border-gray-200/80 shadow-md hover:shadow-lg'
                 }`}
               >
-                {tier.popular && (
+                {isPopular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0D7C66] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
                     Most Popular
                   </span>
@@ -93,7 +77,7 @@ export default function DetailPricing({ serviceTitle }: DetailPricingProps) {
                   </div>
 
                   <ul className="space-y-3">
-                    {tier.features.map((feature, fIdx) => (
+                    {tier.features && tier.features.map((feature, fIdx) => (
                       <li key={fIdx} className="text-xs text-gray-600 flex items-start gap-2.5 leading-relaxed">
                         <span className="text-[#0D7C66] font-bold mt-0.5">✓</span>
                         <span>{feature}</span>
@@ -108,7 +92,7 @@ export default function DetailPricing({ serviceTitle }: DetailPricingProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`block w-full text-center font-bold py-3.5 rounded-xl transition-all text-sm shadow-sm ${
-                      tier.popular
+                      isPopular
                         ? 'bg-[#0D7C66] hover:bg-[#41B3A2] text-white'
                         : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200'
                     }`}

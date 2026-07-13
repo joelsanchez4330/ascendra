@@ -11,13 +11,14 @@ import Footer from '@/components/shared/footer';
 export default function ServicesPage() {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
-  const [services, setServices] = useState<ServiceItem[]>([]);
+  // CHANGED: Renamed state from 'services' to 'serviceItems' to prevent variable collision with the db import reference
+  const [serviceItems, setServiceItems] = useState<ServiceItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     fetchServices(search, activeCategory).then((data) => {
-      setServices(data);
+      setServiceItems(data);
       setLoading(false);
     });
   }, [search, activeCategory]);
@@ -37,7 +38,8 @@ export default function ServicesPage() {
         />
         
         <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <ServicesList services={services} loading={loading} />
+          {/* CHANGED: Passing the updated clear state hook down to child component view lists */}
+          <ServicesList services={serviceItems} loading={loading} />
         </main>
       </div>
 

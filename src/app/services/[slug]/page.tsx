@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { fetchServiceBySlug, ServiceItem } from '@/db/query/services';
+import { fetchServiceBySlug } from '@/db/query/services';
 import Navbar from '@/components/shared/navbar';
 import Footer from '@/components/shared/footer';
 import DetailHero from '@/components/services/detail/hero';
@@ -11,17 +11,29 @@ import DetailGallery from '@/components/services/detail/gallery';
 import DetailPricing from '@/components/services/detail/pricing';
 import DetailCTA from '@/components/services/detail/cta';
 
+// Extended local type definition to match your newly updated query model properties cleanly
+interface DetailedServiceItem {
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  image: string;
+  benefits: string[];
+  pricingTiers: string; // Added to map matching schema text values properly
+}
+
 export default function ServiceDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
   
-  const [service, setService] = useState<ServiceItem | null>(null);
+  const [service, setService] = useState<DetailedServiceItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (slug) {
+      // Type assertion added here to pipe structural data elements smoothly
       fetchServiceBySlug(slug).then((data) => {
-        setService(data);
+        setService(data as DetailedServiceItem | null);
         setLoading(false);
       });
     }
@@ -74,9 +86,10 @@ export default function ServiceDetailPage() {
           title={service.title} 
         />
         
-        {/* NEW PACKAGES LAYER ADDED HERE */}
+        {/* FIXED: Added pricingTiersData prop passing down stringified raw JSON to revive cards */}
         <DetailPricing 
           serviceTitle={service.title} 
+          pricingTiersData={service.pricingTiers}
         />
         
         <DetailCTA 

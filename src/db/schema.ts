@@ -16,10 +16,24 @@ export const faqs = sqliteTable('faqs', {
   category: text('category').notNull(),
 });
 
-// 3. Services Schema
+// 3. Services Schema (Enhanced with Pricing and Benefits)
 export const services = sqliteTable('services', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   title: text('title').notNull(),
-  detail: text('detail').notNull(),
-  images: text('images').notNull(),
+  subtitle: text('subtitle').notNull(),
+  description: text('description').notNull(),
+  image: text('image').notNull(),
+  benefits: text('benefits').notNull(), 
+  pricingTiers: text('pricing_tiers').notNull(), 
+});
+
+// 4. Contact Form Submissions Schema (New)
+export const submissions = sqliteTable('submissions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  company: text('company').notNull(),
+  message: text('message').notNull(),
+  status: text('status').notNull().$default(() => 'unread'), // For dashboard management state tracking
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { services } from "@/db/schema";
 import { eq, and, like, or } from "drizzle-orm";
 
+// 1. Updated Interface layout tracking all required columns
 export interface ServiceItem {
   id: number;
   title: string;
@@ -11,45 +12,55 @@ export interface ServiceItem {
   description: string;
   image: string;
   benefits: string[];
+  pricingTiers: string; // Ensure the frontend can access this raw text block
 }
 
 export async function fetchServices(searchQuery?: string, categoryFilter?: string): Promise<ServiceItem[]> {
   try {
     const conditions = [];
 
-    // Apply search query text matching title or detail columns
     if (searchQuery && searchQuery.trim() !== "") {
       const cleanQuery = `%${searchQuery.trim()}%`;
       conditions.push(
         or(
           like(services.title, cleanQuery),
-          like(services.detail, cleanQuery)
+          like(services.description, cleanQuery)
         )
       );
     }
 
-    // Execute SQLite select statement
     const results = await db
       .select({
         id: services.id,
         title: services.title,
-        detail: services.detail,
-        images: services.images,
+        subtitle: services.subtitle,
+        description: services.description,
+        image: services.image,
+        benefits: services.benefits,
+        pricingTiers: services.pricingTiers, // Select column
       })
       .from(services)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-    // Map rows to standard frontend card data
-    const mappedServices = results.map(item => ({
-      id: item.id,
-      title: item.title,
-      subtitle: "Ascendra Workplace Solutions", 
-      description: item.detail,
-      image: item.images,
-      benefits: ["Professional team execution", "Flexible scheduling options", "Proven workplace outcomes"] 
-    }));
+    const mappedServices = results.map(item => {
+      let parsedBenefits: string[] = [];
+      try {
+        parsedBenefits = JSON.parse(item.benefits);
+      } catch (e) {
+        parsedBenefits = ["Professional team execution", "Flexible scheduling options", "Proven workplace outcomes"];
+      }
 
-    // Filter results locally based on title contents to match the category filter selection
+      return {
+        id: item.id,
+        title: item.title,
+        subtitle: item.subtitle, 
+        description: item.description,
+        image: item.image,
+        benefits: parsedBenefits,
+        pricingTiers: item.pricingTiers // Return property
+      };
+    });
+
     if (categoryFilter && categoryFilter !== "all") {
       return mappedServices.filter(item => {
         const titleLower = item.title.toLowerCase();
@@ -70,7 +81,6 @@ export async function fetchServices(searchQuery?: string, categoryFilter?: strin
 
 export async function fetchServiceBySlug(slug: string): Promise<ServiceItem | null> {
   try {
-    // Convert url slug back to id number (e.g., "workplace-wellness-bootcamps-1" -> 1)
     const idMatch = slug.match(/-(\d+)$/);
     const id = idMatch ? parseInt(idMatch[1], 10) : null;
 
@@ -80,28 +90,33 @@ export async function fetchServiceBySlug(slug: string): Promise<ServiceItem | nu
       .select({
         id: services.id,
         title: services.title,
-        detail: services.detail,
-        images: services.images,
+        subtitle: services.subtitle,
+        description: services.description,
+        image: services.image,
+        benefits: services.benefits,
+        pricingTiers: services.pricingTiers, // FIXED: Added to database row select parameters
       })
       .from(services)
       .where(eq(services.id, id))
-      .get(); // Using .get() for singular row retrieval in SQLite
+      .get(); 
 
     if (!result) return null;
 
-    // Split image string by commas if you store multiple images as text, or use fallback list
-    const imageList = result.images.includes(',') 
-      ? result.images.split(',').map(img => img.trim())
-      : [result.images];
+    let parsedBenefits: string[] = [];
+    try {
+      parsedBenefits = JSON.parse(result.benefits);
+    } catch (e) {
+      parsedBenefits = [];
+    }
 
     return {
       id: result.id,
       title: result.title,
-      subtitle: "Ascendra Workplace Solutions",
-      description: result.detail,
-      image: imageList[0],
-      // Expose the raw array for the image gallery section
-      benefits: imageList 
+      subtitle: result.subtitle,
+      description: result.description,
+      image: result.image,
+      benefits: parsedBenefits,
+      pricingTiers: result.pricingTiers // FIXED: Passed directly through to frontend props pipeline mapping
     };
   } catch (error) {
     console.error("Failed to query service details:", error);
