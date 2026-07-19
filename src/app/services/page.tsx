@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { fetchServices, ServiceItem } from '@/db/query/services';
+// FIX: Imports updated frontend architecture and schema type definitions cleanly
+import { fetchServices, FrontendServiceItem } from '@/db/query/services';
 import Navbar from '@/components/shared/navbar';
 import ServicesHero from '@/components/services/type/hero';
 import SearchBar from '@/components/services/type/search';
@@ -11,14 +12,14 @@ import Footer from '@/components/shared/footer';
 export default function ServicesPage() {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
-  // CHANGED: Renamed state from 'services' to 'serviceItems' to prevent variable collision with the db import reference
-  const [serviceItems, setServiceItems] = useState<ServiceItem[]>([]);
+  const [serviceItems, setServiceItems] = useState<FrontendServiceItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     fetchServices(search, activeCategory).then((data) => {
-      setServiceItems(data);
+      // Data format includes parsed arrays ready for list items mapping
+      setServiceItems(data as any); 
       setLoading(false);
     });
   }, [search, activeCategory]);
@@ -38,7 +39,6 @@ export default function ServicesPage() {
         />
         
         <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          {/* CHANGED: Passing the updated clear state hook down to child component view lists */}
           <ServicesList services={serviceItems} loading={loading} />
         </main>
       </div>

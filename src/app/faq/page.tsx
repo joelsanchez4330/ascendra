@@ -22,7 +22,8 @@ export default function FAQPage() {
   }, [activeCategory]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
+    // FIX: Added overflow-x-hidden to prevent negative sub-component margins from breaking the page width boundary
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-between overflow-x-hidden">
       <Navbar />
 
       <div className="flex-grow">

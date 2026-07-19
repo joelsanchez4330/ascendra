@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { FAQItem } from '@/db/query/faq';
 
@@ -24,41 +26,41 @@ export default function FAQList({ faqs, loading }: FAQListProps) {
 
   if (faqs.length === 0) {
     return (
-      <div className="text-center bg-white rounded-3xl p-12 border border-gray-100 max-w-md mx-auto shadow-md">
+      <div className="text-center bg-white rounded-3xl p-8 border border-gray-100 max-w-md mx-auto shadow-sm">
         <p className="text-base font-bold text-gray-900">No questions found</p>
-        <p className="text-xs text-gray-500 mt-1">There are no FAQs posted matching this category right now.</p>
+        <p className="text-xs text-gray-500 mt-1">There are no frequently asked questions in this category yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
+    <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
       {faqs.map((faq) => {
         const isOpen = openId === faq.id;
         
         return (
           <div 
             key={faq.id}
-            className="bg-white rounded-2xl border border-gray-200/60 shadow-md overflow-hidden transition-all duration-200"
+            className="bg-white rounded-xl sm:rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden"
           >
             <button
               onClick={() => toggleAccordion(faq.id)}
-              className="w-full text-left p-6 flex justify-between items-center gap-4 bg-white hover:bg-gray-50/50 transition-colors duration-150 focus:outline-none"
+              className="w-full text-left p-4 sm:p-6 flex justify-between items-center gap-4 bg-white hover:bg-gray-50/50 transition-colors cursor-pointer focus:outline-none"
             >
-              <span className="font-bold text-gray-900 text-sm sm:text-base leading-snug">
+              <span className="font-extrabold text-gray-900 text-xs sm:text-base leading-snug">
                 {faq.question}
               </span>
-              <span className={`text-[#0D7C66] font-bold text-xl transition-transform duration-200 ${isOpen ? 'rotate-185 transform' : ''}`}>
+              <span className={`text-[#0D7C66] font-bold text-lg sm:text-xl transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
                 {isOpen ? '−' : '+'}
               </span>
             </button>
             
             <div 
-              className={`transition-all duration-300 ease-in-out max-h-0 overflow-hidden ${
-                isOpen ? 'max-h-[500px] border-t border-gray-100' : ''
+              className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                isOpen ? 'max-h-[1000px] border-t border-gray-100' : 'max-h-0'
               }`}
             >
-              <div className="p-6 text-xs sm:text-sm text-gray-600 leading-relaxed bg-white whitespace-pre-line font-medium">
+              <div className="p-4 sm:p-6 text-xs sm:text-sm text-gray-600 leading-relaxed bg-white whitespace-pre-line">
                 {faq.answer}
               </div>
             </div>

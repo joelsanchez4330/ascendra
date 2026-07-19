@@ -15,7 +15,6 @@ export async function fetchGalleryItems(categoryFilter?: string): Promise<Galler
   try {
     const conditions = [];
 
-    // Filters directly against the targeted tag string within the database rows
     if (categoryFilter && categoryFilter !== "all") {
       conditions.push(like(gallery.tags, `%${categoryFilter.trim()}%`));
     }
@@ -34,6 +33,28 @@ export async function fetchGalleryItems(categoryFilter?: string): Promise<Galler
     return results;
   } catch (error) {
     console.error("Failed to fetch gallery items from SQLite:", error);
+    return [];
+  }
+}
+
+// ADD THIS FUNCTION: Scans the table and gets clean, unique categories
+export async function fetchExistingGalleryCategories(): Promise<string[]> {
+  try {
+    const records = await db.select({ tags: gallery.tags }).from(gallery);
+    const tagsSet = new Set<string>();
+
+    records.forEach((row) => {
+      if (row.tags) {
+        row.tags.split(",").forEach((tag) => {
+          const trimmed = tag.trim().toLowerCase();
+          if (trimmed) tagsSet.add(trimmed);
+        });
+      }
+    });
+
+    return Array.from(tagsSet).sort();
+  } catch (error) {
+    console.error("Failed to extract gallery categories:", error);
     return [];
   }
 }

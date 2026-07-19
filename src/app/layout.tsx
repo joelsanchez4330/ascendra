@@ -12,10 +12,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Update metadata to reflect your wellness/headhunting agency
 export const metadata: Metadata = {
-  title: "MindDrive | Corporate Mental Health & Talent Agency",
-  description: "Transforming workplace culture through leadership bootcamps, resilient talent headhunting, and confidential employee coaching.",
+  title: "Ascendra",
+  description: "Transforming workplace culture through strategic alignment frameworks, corporate talent acquisition, and professional development programs.",
 };
 
 export default function RootLayout({
@@ -23,13 +22,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Replace this placeholder link with your exact Cloudinary logo image URL
+  const logoUrl = "https://res.cloudinary.com/ws5jqxi7/image/upload/v1784478507/logo-no-bg_a7tiij.png";
+
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      {/* Added bg-white to guarantee a pure white rendering foundation */}
-      <body className="min-h-full flex flex-col bg-white">
+    <html lang="en" className="h-full antialiased selection:bg-[#0D7C66]/10 selection:text-[#0D7C66]">
+      <head>
+        {/* Forces the browser to load the custom Cloudinary icon directly */}
+        <link rel="icon" href={logoUrl} type="image/png" sizes="any" />
+        <link rel="shortcut icon" href={logoUrl} type="image/png" />
+        <link rel="apple-touch-icon" href={logoUrl} />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-full flex flex-col bg-white overflow-x-hidden text-gray-900`}>
         {children}
       </body>
     </html>

@@ -6,7 +6,7 @@ const features = [
   {
     id: "leadership",
     title: "Supportive Leadership",
-    subtitle: "Pillar 01 — Spotting Burnout Early",
+    subtitle: "Spotting Burnout Early",
     description: "Help your managers spot warning signs of stress and heavy workloads before people decide to quit. Leaders will learn how to move past just looking at basic output numbers and build real trust that helps employees do their best work.",
     image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800&auto=format&fit=crop",
     tags: ["Prevent Burnout", "Build Trust", "Better Managers"]
@@ -14,7 +14,7 @@ const features = [
   {
     id: "transformation",
     title: "Personal Growth",
-    subtitle: "Pillar 02 — Handling Workplace Stress",
+    subtitle: "Handling Workplace Stress",
     description: "Give your employees practical ways to manage daily stress. This module helps team members understand what truly motivates them at work, overcome performance anxiety, and set healthy boundaries so they can stay focused and clear-headed.",
     image: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop",
     tags: ["Manage Stress", "Stay Focused", "Work Motivation"]
@@ -22,7 +22,7 @@ const features = [
   {
     id: "culture",
     title: "Better Team Habits",
-    subtitle: "Pillar 03 — Healthier Daily Rhythms",
+    subtitle: "Healthier Daily Rhythms",
     description: "Improve the way your company operates day-to-day. We help you update everything from internal communication styles to how you praise good work, creating a supportive environment where people actually enjoy working and want to stay long-term.",
     image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=800&auto=format&fit=crop",
     tags: ["Good Habits", "Better Communication", "Keep Your Talent"]
@@ -34,6 +34,9 @@ export default function BootcampFeatures() {
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   useEffect(() => {
+    // Only engage the intersection tracker on larger desktop viewports
+    if (window.innerWidth < 1024) return;
+
     const observerOptions = {
       root: null,
       rootMargin: "-45% 0px -45% 0px",
@@ -66,11 +69,11 @@ export default function BootcampFeatures() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-white py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-white py-12 sm:py-20">
       <div className="flex flex-col lg:flex-row gap-12 relative">
         
-        {/* LEFT COLUMN: Sticky Pathway Navigator */}
-        <div className="lg:w-1/3 lg:sticky lg:top-36 lg:h-fit z-10 py-2">
+        {/* LEFT COLUMN: Sticky Pathway Navigator (Hidden on Mobile viewports to save vertical container space) */}
+        <div className="hidden lg:block lg:w-1/3 lg:sticky lg:top-36 lg:h-fit z-10 py-2">
           <span className="text-xs font-bold uppercase tracking-widest text-[#41B3A2] bg-[#BDE8CA]/20 px-3 py-1.5 rounded-full">
             Our Program
           </span>
@@ -81,7 +84,7 @@ export default function BootcampFeatures() {
             When teams feel supported and understood, they do better work. Explore the three main pillars we use to improve your workplace culture.
           </p>
 
-          {/* Interactive Path Timeline Component */}
+          {/* Interactive Path Timeline Indicator */}
           <div className="relative pl-6 border-l-2 border-gray-100 space-y-6">
             {features.map((feature) => {
               const isActive = activeId === feature.id;
@@ -89,7 +92,7 @@ export default function BootcampFeatures() {
                 <button
                   key={feature.id}
                   onClick={() => scrollToSection(feature.id)}
-                  className="group flex flex-col items-start text-left focus:outline-none relative w-full transition-all"
+                  className="group flex flex-col items-start text-left focus:outline-none relative w-full transition-all cursor-pointer"
                 >
                   <span className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 bg-white transition-all duration-300 ${
                     isActive 
@@ -117,17 +120,30 @@ export default function BootcampFeatures() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Borderless, High-Distance Scrolling Panels */}
-        <div className="lg:w-2/3 space-y-[40vh] pb-[20vh]">
+        {/* MOBILE HEADER: Alternative introduction block rendered strictly on smaller viewports */}
+        <div className="block lg:hidden text-center max-w-xl mx-auto mb-4">
+          <span className="text-xs font-bold uppercase tracking-widest text-[#41B3A2] bg-[#BDE8CA]/20 px-3 py-1.5 rounded-full">
+            Our Program
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 mt-3 mb-2">
+            Bootcamp Structure
+          </h2>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            When teams feel supported and understood, they do better work. Explore the three main pillars we use to improve your workplace culture.
+          </p>
+        </div>
+
+        {/* RIGHT COLUMN: Scrolling Panels (Responsive spacing bounds instead of fixed large viewport spaces) */}
+        <div className="w-full lg:w-2/3 space-y-16 lg:space-y-[35vh] lg:pb-[15vh]">
           {features.map((feature) => (
             <div
               key={feature.id}
               id={feature.id}
               ref={(el) => { sectionRefs.current[feature.id] = el; }}
-              className="scroll-mt-36 flex flex-col space-y-4 bg-white max-h-[580px] overflow-hidden justify-between"
+              className="scroll-mt-24 lg:scroll-mt-36 flex flex-col space-y-4 bg-white overflow-hidden justify-between"
             >
-              {/* Capped Image Height */}
-              <div className="relative w-full h-[200px] rounded-xl overflow-hidden shadow-sm bg-gray-50">
+              {/* Image Banner */}
+              <div className="relative w-full h-[200px] sm:h-[280px] rounded-2xl overflow-hidden shadow-sm bg-gray-50">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent z-10" />
                 <img
                   src={feature.image}
@@ -137,12 +153,12 @@ export default function BootcampFeatures() {
                 />
               </div>
 
-              {/* Typography Layout */}
+              {/* Typography Content Card */}
               <div className="space-y-2">
-                <span className="text-xs font-semibold text-[#41B3A2] uppercase tracking-wider">
+                <span className="text-xs font-bold text-[#41B3A2] uppercase tracking-wider">
                   {feature.subtitle}
                 </span>
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">
+                <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-gray-900">
                   {feature.title}
                 </h3>
                 <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
@@ -154,7 +170,7 @@ export default function BootcampFeatures() {
                   {feature.tags.map((tag, idx) => (
                     <span 
                       key={idx} 
-                      className="text-[11px] font-medium text-gray-500 bg-gray-50 border border-gray-150 px-2.5 py-0.5 rounded"
+                      className="text-[11px] font-bold text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg"
                     >
                       {tag}
                     </span>

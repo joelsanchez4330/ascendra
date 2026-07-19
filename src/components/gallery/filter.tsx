@@ -1,35 +1,52 @@
+"use client";
+
 import React from 'react';
 
 interface GalleryFilterProps {
   activeCategory: string;
   setActiveCategory: (category: string) => void;
+  categories: string[]; 
 }
 
-export default function GalleryFilter({ activeCategory, setActiveCategory }: GalleryFilterProps) {
-  // Matched exactly to the core tags in your image rows
-  const categories = [
-    { id: 'all', label: 'All Photos' },
-    { id: 'bootcamp', label: 'Bootcamp & Workshops' },
-    { id: 'coaching', label: '1-on-1 Coaching' },
-    { id: 'culture', label: 'Culture & Wellbeing' },
-  ];
-
+// FIX: Set a default parameter fallback to an empty array ([]) to completely shield against undefined variables
+export default function GalleryFilter({ 
+  activeCategory, 
+  setActiveCategory, 
+  categories = [] 
+}: GalleryFilterProps) {
   return (
-    <section className="bg-white border-b border-gray-100 pb-8 sticky top-16 z-30 shadow-sm shadow-gray-50/10">
-      <div className="flex flex-wrap gap-2 justify-center px-4 max-w-3xl mx-auto">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={`text-xs font-bold px-5 py-2.5 rounded-full transition-all border ${
-              activeCategory === cat.id
-                ? 'bg-[#0D7C66] border-[#0D7C66] text-white'
-                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
+    <section className="bg-white border-b border-gray-100 pb-6 sticky top-20 z-30 shadow-sm shadow-gray-50/10">
+      <div className="flex overflow-x-auto pb-1 gap-2 -mx-4 px-4 scrollbar-none md:mx-auto md:px-0 md:flex-wrap md:justify-center md:pb-0 max-w-3xl">
+        
+        <button
+          onClick={() => setActiveCategory('all')}
+          className={`text-xs font-bold px-5 py-2.5 rounded-full transition-colors border cursor-pointer whitespace-nowrap flex-shrink-0 ${
+            activeCategory === 'all'
+              ? 'bg-[#0D7C66] border-[#0D7C66] text-white'
+              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          All Photos
+        </button>
+
+        {/* Maps smoothly without errors because categories is guaranteed to be an array */}
+        {categories.map((cat) => {
+          const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+          
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`text-xs font-bold px-5 py-2.5 rounded-full transition-colors border cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                activeCategory === cat
+                  ? 'bg-[#0D7C66] border-[#0D7C66] text-white'
+                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
     </section>
   );

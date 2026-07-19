@@ -2,29 +2,31 @@
 
 import { db } from "@/db";
 import { services } from "@/db/schema";
-import { eq, and, like, or } from "drizzle-orm";
+import { and, like, or, eq } from "drizzle-orm";
 
-// 1. Updated Interface layout tracking all required columns
-export interface ServiceItem {
+// Interface mapping perfectly to the active production database columns
+export interface FrontendServiceItem {
   id: number;
   title: string;
-  subtitle: string;
-  description: string;
-  image: string;
-  benefits: string[];
-  pricingTiers: string; // Ensure the frontend can access this raw text block
+  coverImage: string;
+  shortDetail: string;
+  longDetail: string;
+  galleryImages: string[]; // Cleanly parsed for UI component injection
+  benefits: string[];      // Unified tracking for landing page features
 }
 
-export async function fetchServices(searchQuery?: string, categoryFilter?: string): Promise<ServiceItem[]> {
+export async function fetchServices(searchQuery?: string, categoryFilter?: string): Promise<FrontendServiceItem[]> {
   try {
     const conditions = [];
 
+    // 1. Text Search Constraints Mapping
     if (searchQuery && searchQuery.trim() !== "") {
       const cleanQuery = `%${searchQuery.trim()}%`;
       conditions.push(
         or(
           like(services.title, cleanQuery),
-          like(services.description, cleanQuery)
+          like(services.shortDetail, cleanQuery),
+          like(services.longDetail, cleanQuery)
         )
       );
     }
@@ -33,53 +35,76 @@ export async function fetchServices(searchQuery?: string, categoryFilter?: strin
       .select({
         id: services.id,
         title: services.title,
-        subtitle: services.subtitle,
-        description: services.description,
-        image: services.image,
-        benefits: services.benefits,
-        pricingTiers: services.pricingTiers, // Select column
+        coverImage: services.coverImage,
+        shortDetail: services.shortDetail,
+        longDetail: services.longDetail,
+        galleryImages: services.galleryImages,
       })
       .from(services)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
 
+    // 2. Data Hydration & Transformation Pipeline
     const mappedServices = results.map(item => {
-      let parsedBenefits: string[] = [];
+      let parsedGallery: string[] = [];
       try {
-        parsedBenefits = JSON.parse(item.benefits);
+        parsedGallery = JSON.parse(item.galleryImages || "[]");
       } catch (e) {
-        parsedBenefits = ["Professional team execution", "Flexible scheduling options", "Proven workplace outcomes"];
+        parsedGallery = [];
       }
+
+      // Generates fallback itemized checklist features if your details layout requires them
+      const fallbackBenefits = [
+        item.shortDetail || "Tailored Corporate Strategy Framework",
+        "Includes Dedicated Operational Implementation",
+        "Full Risk Mitigation & Performance Metrics Alignment"
+      ];
 
       return {
         id: item.id,
-        title: item.title,
-        subtitle: item.subtitle, 
-        description: item.description,
-        image: item.image,
-        benefits: parsedBenefits,
-        pricingTiers: item.pricingTiers // Return property
+        title: item.title || "",
+        coverImage: item.coverImage || "",
+        shortDetail: item.shortDetail || "",
+        longDetail: item.longDetail || "",
+        galleryImages: parsedGallery,
+        benefits: fallbackBenefits
       };
     });
 
+    // 3. Multi-Language Resilient Category Filtering Layer
     if (categoryFilter && categoryFilter !== "all") {
       return mappedServices.filter(item => {
         const titleLower = item.title.toLowerCase();
-        if (categoryFilter === "bootcamp") return titleLower.includes("bootcamp") || titleLower.includes("wellness");
-        if (categoryFilter === "recruiting") return titleLower.includes("recruiting") || titleLower.includes("hunting") || titleLower.includes("talent");
-        if (categoryFilter === "coaching") return titleLower.includes("coaching") || titleLower.includes("1-on-1");
+        const shortLower = item.shortDetail.toLowerCase();
+        const longLower = item.longDetail.toLowerCase();
+
+        // Helper check matching any target pattern across content strings
+        const matchesKeywords = (keywords: string[]) => 
+          keywords.some(kw => titleLower.includes(kw) || shortLower.includes(kw) || longLower.includes(kw));
+
+        if (categoryFilter === "alignment") {
+          return matchesKeywords(["alignment", "strategic", "strategy", "bisnis", "struktur", "selaras"]);
+        }
+        
+        if (categoryFilter === "talent") {
+          return matchesKeywords(["talent", "assessment", "acquisition", "recruiting", "bakat", "asesmen", "rekrut", "hunting"]);
+        }
+        
+        if (categoryFilter === "training") {
+          return matchesKeywords(["training", "development", "pelatihan", "pengembangan", "workshop", "bootcamp", "coaching"]);
+        }
+        
         return true;
       });
     }
 
     return mappedServices;
-
   } catch (error) {
-    console.error("Failed to query SQLite database:", error);
+    console.error("Failed to fetch data records from backend Turso context:", error);
     return [];
   }
 }
 
-export async function fetchServiceBySlug(slug: string): Promise<ServiceItem | null> {
+export async function fetchServiceBySlug(slug: string): Promise<FrontendServiceItem | null> {
   try {
     const idMatch = slug.match(/-(\d+)$/);
     const id = idMatch ? parseInt(idMatch[1], 10) : null;
@@ -90,11 +115,10 @@ export async function fetchServiceBySlug(slug: string): Promise<ServiceItem | nu
       .select({
         id: services.id,
         title: services.title,
-        subtitle: services.subtitle,
-        description: services.description,
-        image: services.image,
-        benefits: services.benefits,
-        pricingTiers: services.pricingTiers, // FIXED: Added to database row select parameters
+        coverImage: services.coverImage,
+        shortDetail: services.shortDetail,
+        longDetail: services.longDetail,
+        galleryImages: services.galleryImages,
       })
       .from(services)
       .where(eq(services.id, id))
@@ -102,24 +126,27 @@ export async function fetchServiceBySlug(slug: string): Promise<ServiceItem | nu
 
     if (!result) return null;
 
-    let parsedBenefits: string[] = [];
+    let parsedGallery: string[] = [];
     try {
-      parsedBenefits = JSON.parse(result.benefits);
+      parsedGallery = JSON.parse(result.galleryImages || "[]");
     } catch (e) {
-      parsedBenefits = [];
+      parsedGallery = [];
     }
 
     return {
       id: result.id,
-      title: result.title,
-      subtitle: result.subtitle,
-      description: result.description,
-      image: result.image,
-      benefits: parsedBenefits,
-      pricingTiers: result.pricingTiers // FIXED: Passed directly through to frontend props pipeline mapping
+      title: result.title || "",
+      coverImage: result.coverImage || "",
+      shortDetail: result.shortDetail || "",
+      longDetail: result.longDetail || "",
+      galleryImages: parsedGallery,
+      benefits: [
+        result.shortDetail || "Tailored Corporate Performance Alignment Layers",
+        "Includes Dedicated Operational Implementation"
+      ]
     };
   } catch (error) {
-    console.error("Failed to query service details:", error);
+    console.error(`Failed to pull dynamic payload parameters for slug parameter [${slug}]:`, error);
     return null;
   }
 }

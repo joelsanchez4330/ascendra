@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import Navbar from '@/components/shared/navbar';
 import Footer from '@/components/shared/footer';
@@ -11,40 +13,46 @@ import BookingForm from '@/components/home/cta-consultation';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white text-gray-900 antialiased selection:bg-[#BDE8CA] selection:text-[#0D7C66]">
+    <div className="min-h-screen bg-white flex flex-col justify-between">
       
       {/* Persistent Navigation */}
       <Navbar />
 
       {/* Main Page Content Flow */}
-      <main className="w-full">
+      <main className="flex-grow w-full overflow-hidden">
         
-        {/* 1. HERO CAROUSEL */}
-        <section id="hero">
+        {/* 1. Hero Showcase */}
+        <section id="hero" className="w-full bg-white">
           <Hero />
         </section>
 
-        {/* 2. BOOTCAMP FEATURES (With anchor scroll tracking setup) */}
-        <section id="services" className="bg-white scroll-mt-20">
+        {/* 2. Core Operational Pillars */}
+        <section id="services" className="w-full bg-white scroll-mt-20">
           <BootcampFeatures />
         </section>
 
-        {/* 3. METRICS & SYSTEMIC REALITY */}
-        <Stats />
+        {/* 3. Performance Metrics */}
+        <section className="w-full bg-gray-50/50">
+          <Stats />
+        </section>
 
-        {/* 4. REMAINING SERVICES COMPASS CTA */}
-        <ServicesCTA />
+        {/* 4. Service Navigation Action */}
+        <section className="w-full bg-white">
+          <ServicesCTA />
+        </section>
 
-        {/* 5. SOCIAL IMPACT AND WORKPLACE TESTIMONIALS */}
-        <Testimonials />
+        {/* 5. Client Testimonials */}
+        <section className="w-full bg-gray-50/50">
+          <Testimonials />
+        </section>
 
-        {/* 6. THE MEDIA GRID MATRIX */}
-        <section id="gallery" className="bg-white">
+        {/* 6. Media Framework Gallery */}
+        <section id="gallery" className="w-full bg-white scroll-mt-20">
           <Gallery />
         </section>
 
-        {/* 7. INTAKE EVALUATION FORM */}
-        <section id="contact" className="bg-white scroll-mt-20">
+        {/* 7. Corporate Intake Evaluation Form */}
+        <section id="contact" className="w-full bg-gray-50/50 scroll-mt-20">
           <BookingForm />
         </section>
 

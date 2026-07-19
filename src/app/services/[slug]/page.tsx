@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { fetchServiceBySlug } from '@/db/query/services';
+// FIX: Imports updated frontend schemas and new companion relational pricing plans queries
+import { fetchServiceBySlug, FrontendServiceItem } from '@/db/query/services';
+import { fetchPricingPlansByService, FrontendPricingPlan } from '@/db/query/pricing';
 import Navbar from '@/components/shared/navbar';
 import Footer from '@/components/shared/footer';
 import DetailHero from '@/components/services/detail/hero';
@@ -11,32 +13,34 @@ import DetailGallery from '@/components/services/detail/gallery';
 import DetailPricing from '@/components/services/detail/pricing';
 import DetailCTA from '@/components/services/detail/cta';
 
-// Extended local type definition to match your newly updated query model properties cleanly
-interface DetailedServiceItem {
-  id: number;
-  title: string;
-  subtitle: string;
-  description: string;
-  image: string;
-  benefits: string[];
-  pricingTiers: string; // Added to map matching schema text values properly
-}
-
 export default function ServiceDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
   
-  const [service, setService] = useState<DetailedServiceItem | null>(null);
+  const [service, setService] = useState<FrontendServiceItem | null>(null);
+  const [pricingPlans, setPricingPlans] = useState<FrontendPricingPlan[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (slug) {
-      // Type assertion added here to pipe structural data elements smoothly
-      fetchServiceBySlug(slug).then((data) => {
-        setService(data as DetailedServiceItem | null);
-        setLoading(false);
-      });
+    if (!slug) return;
+
+    async function loadDataPipeline() {
+      setLoading(true);
+      const serviceData = await fetchServiceBySlug(slug);
+      
+      if (serviceData) {
+        setService(serviceData);
+        // Hydrates relational investment plans dynamically using the item identity primary key
+        const plans = await fetchPricingPlansByService(serviceData.id);
+        setPricingPlans(plans);
+      } else {
+        setService(null);
+        setPricingPlans([]);
+      }
+      setLoading(false);
     }
+
+    loadDataPipeline();
   }, [slug]);
 
   if (loading) {
@@ -73,23 +77,23 @@ export default function ServiceDetailPage() {
       <main className="flex-grow">
         <DetailHero 
           title={service.title} 
-          subtitle={service.subtitle} 
-          coverImage={service.image} 
+          subtitle="Corporate Strategy Portfolio" 
+          coverImage={service.coverImage} 
         />
         <DetailContent 
           title={service.title}
-          subtitle={service.subtitle}
-          description={service.description} 
+          shortDetail={service.shortDetail}
+          longDetail={service.longDetail} 
         />
         <DetailGallery 
-          images={service.benefits} 
+          images={service.galleryImages} 
           title={service.title} 
         />
         
-        {/* FIXED: Added pricingTiersData prop passing down stringified raw JSON to revive cards */}
+        {/* FIX: Feeds the actual relational dataset cleanly instead of string tokens */}
         <DetailPricing 
           serviceTitle={service.title} 
-          pricingTiersData={service.pricingTiers}
+          pricingPlans={pricingPlans}
         />
         
         <DetailCTA 

@@ -1,29 +1,38 @@
 "use client";
 
-import React from 'react';
-
-const galleryImages = [
-  "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=500&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=500&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=500&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=500&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=500&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1544027993-37dbfe43562a?q=80&w=500&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=500&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=500&auto=format&fit=crop"
-];
+import React, { useState, useEffect } from 'react';
+import { fetchGalleryItems, GalleryItem } from '@/db/query/gallery';
 
 export default function Gallery() {
+  const [images, setImages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Queries all gallery data records directly on application component mount
+    fetchGalleryItems("all")
+      .then((data: GalleryItem[]) => {
+        if (data && data.length > 0) {
+          // Extracts the active image URLs from database fields
+          setImages(data.map(item => item.url));
+        }
+      })
+      .catch((err) => console.error("Marquee initialization failure:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Duplicate the target list array inline to feed continuous looping calculations
+  const displayImages = [...images, ...images];
+
   return (
     <div className="bg-white py-16 sm:py-20 overflow-hidden">
       
       {/* Top Heading Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 text-center">
         <span className="text-xs font-bold uppercase tracking-widest text-[#41B3A2] bg-[#BDE8CA]/25 px-3 py-1.5 rounded-full">
-          Ecosystem Footprint
+          Visual
         </span>
         <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-900 mt-4">
-          Ascendra In Action
+          Gallery
         </h2>
       </div>
 
@@ -50,20 +59,31 @@ export default function Gallery() {
         <div className="absolute top-0 right-0 w-[240px] sm:w-[380px] h-full bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
 
         {/* Continuous Autoplaying Image Track */}
-        <div className="animate-scroll-marquee gap-4 flex">
-          {[...galleryImages, ...galleryImages].map((url, idx) => (
-            <div 
-              key={idx} 
-              className="w-[240px] sm:w-[320px] h-[160px] sm:h-[220px] rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 shadow-sm border border-gray-100/40"
-            >
-              <img 
-                src={url} 
-                alt="Ascendra corporate ecosystem thumbnail catalog asset" 
-                className="w-full h-full object-cover" 
-              />
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex gap-4 justify-center py-8">
+            <div className="w-5 h-5 border-2 border-gray-200 border-t-[#0D7C66] rounded-full animate-spin" />
+          </div>
+        ) : images.length === 0 ? (
+          <div className="text-center text-xs font-medium text-gray-400 py-10">
+            No active portfolio records mapped in repository layers.
+          </div>
+        ) : (
+          <div className="animate-scroll-marquee gap-4 flex">
+            {displayImages.map((url, idx) => (
+              <div 
+                key={idx} 
+                className="w-[240px] sm:w-[320px] h-[160px] sm:h-[220px] rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 shadow-sm border border-gray-100/40"
+              >
+                <img 
+                  src={url} 
+                  alt="Ascendra corporate ecosystem thumbnail catalog asset" 
+                  className="w-full h-full object-cover" 
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Central Action CTA Link */}
